@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Calendar from './Calendar.js';
 
+// Import Font Awesome icons (if using Font Awesome)
+import { FaCalendar } from 'react-icons/fa'; 
+
 function Clubs() {
     const [clubs, setClubs] = useState([]);
     const [subscriptions, setSubscriptions] = useState([]);
@@ -53,9 +56,14 @@ function Clubs() {
                     <button
                         className="btn btn-link"
                         onClick={() => setSelectedClubId(selectedClubId === club.id ? null : club.id)}
+                        title={selectedClubId === club.id ? 'Hide Calendar' : 'Show Calendar'}
+                        style={{
+                            color: selectedClubId === club.id ? '#007bff' : '#6c757d',
+                        }}
                     >
-                        {selectedClubId === club.id ? 'Hide Calendar' : 'Show Calendar'}
+                        <FaCalendar />
                     </button>
+
                     {selectedClubId === club.id && <Calendar clubId={club.id} />}
                 </div>
             ))}
