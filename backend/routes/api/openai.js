@@ -53,7 +53,7 @@ router.post('/recommend', async (req, res) => {
         },
         {
           headers: {
-            Authorization: `Bearer ${process.env.OPEN_AI_KEY}`, // Ensure your API key is set in environment
+            Authorization: `Bearer ${process.env.OPEN_AI_KEY}`, // Ensure your API key is set in environment var
             'Content-Type': 'application/json',
           },
         }
