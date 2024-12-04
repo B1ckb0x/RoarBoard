@@ -5,6 +5,9 @@ const bodyParser = require('body-parser');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+require('dotenv').config();
+
+
 // Import routes
 const clubsRouter = require('../routes/api/clubsRoutes');
 //try with two ..

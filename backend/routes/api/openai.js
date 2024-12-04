@@ -53,7 +53,7 @@ router.post('/recommend', async (req, res) => {
         },
         {
           headers: {
-            Authorization: `Bearer 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`, // Ensure your API key is set in environment variables
+            Authorization: `Bearer ${process.env.OPEN_AI_KEY}`, // Ensure your API key is set in environment
             'Content-Type': 'application/json',
           },
         }
