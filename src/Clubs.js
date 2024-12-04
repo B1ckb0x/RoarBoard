@@ -1,13 +1,11 @@
 // import React, { useEffect, useState } from 'react';
 // import axios from 'axios';
-// import { Button, Card, FormControlLabel, Switch } from '@mui/material';
-// import { Link } from 'react-router-dom';
+// import { Card, FormControlLabel, Switch, Typography } from '@mui/material';
 // import './Clubs.css'; // Optional for custom styles
 //
 // function Clubs() {
 //     const [clubs, setClubs] = useState([]);
 //     const [subscriptions, setSubscriptions] = useState([]);
-//     const [selectedClubId, setSelectedClubId] = useState(null);
 //     const token = localStorage.getItem('authToken');
 //
 //     useEffect(() => {
@@ -20,7 +18,7 @@
 //         axios.get('/api/clubs/subscriptions', { headers: { Authorization: `Bearer ${token}` } })
 //             .then(response => setSubscriptions(response.data))
 //             .catch(error => console.error('Error fetching subscriptions:', error));
-//     }, []);
+//     }, [token]);
 //
 //     const handleToggle = (clubId) => {
 //         const isSubscribed = subscriptions.includes(clubId);
@@ -40,13 +38,13 @@
 //
 //     return (
 //         <div className="clubs-container">
-//             <h3>Your Clubs</h3>
-//             <p>Toggle the clubs you'd like to subscribe to:</p>
+//             <Typography variant="h4" gutterBottom>Your Clubs</Typography>
+//             <Typography variant="body1" gutterBottom>Toggle the clubs you'd like to subscribe to:</Typography>
 //             <div className="clubs-list">
 //                 {clubs.map((club) => (
-//                     <Card key={club.id} className="club-card">
+//                     <Card key={club.id} className="club-card" sx={{ marginBottom: 2, padding: 2 }}>
 //                         <div className="club-card-content">
-//                             <h4>{club.name}</h4>
+//                             <Typography variant="h6">{club.name}</Typography>
 //                             <FormControlLabel
 //                                 control={
 //                                     <Switch
@@ -58,21 +56,7 @@
 //                                 label={subscriptions.includes(club.id) ? 'Subscribed' : 'Not Subscribed'}
 //                                 labelPlacement="end"
 //                             />
-//                             <Button
-//                                 variant="outlined"
-//                                 onClick={() => setSelectedClubId(selectedClubId === club.id ? null : club.id)}
-//                                 sx={{ marginTop: 2 }}
-//                             >
-//                                 {selectedClubId === club.id ? 'Hide Calendar' : 'Show Calendar'}
-//                             </Button>
 //                         </div>
-//
-//                         {selectedClubId === club.id && (
-//                             <div className="calendar-container">
-//                                 {/* Replace with actual Calendar Component */}
-//                                 <p>Meeting times for {club.name} will be shown here.</p>
-//                             </div>
-//                         )}
 //                     </Card>
 //                 ))}
 //             </div>
@@ -81,19 +65,19 @@
 // }
 //
 // export default Clubs;
+//
+//
 
 
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Button, Card, FormControlLabel, Switch, Typography } from '@mui/material';
-import Calendar from './Calendar.js'; // Ensure this is correctly imported
-import { FaCalendar } from 'react-icons/fa'; // Font Awesome for calendar icon
+import { Card, FormControlLabel, Switch, Typography, TextField } from '@mui/material'; // Added TextField for search input
 import './Clubs.css'; // Optional for custom styles
 
 function Clubs() {
     const [clubs, setClubs] = useState([]);
     const [subscriptions, setSubscriptions] = useState([]);
-    const [selectedClubId, setSelectedClubId] = useState(null);
+    const [searchQuery, setSearchQuery] = useState(""); // State for search input
     const token = localStorage.getItem('authToken');
 
     useEffect(() => {
@@ -124,12 +108,28 @@ function Clubs() {
             .catch(error => console.error('Error updating subscription:', error));
     };
 
+    // Filter clubs based on search query
+    const filteredClubs = clubs.filter(club =>
+        club.name.toLowerCase().includes(searchQuery.toLowerCase()) // Case-insensitive search
+    );
+
     return (
         <div className="clubs-container">
             <Typography variant="h4" gutterBottom>Your Clubs</Typography>
             <Typography variant="body1" gutterBottom>Toggle the clubs you'd like to subscribe to:</Typography>
+
+            {/* Search Input */}
+            <TextField
+                label="Search Clubs"
+                variant="outlined"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)} // Update search query
+                fullWidth
+                sx={{ marginBottom: 3 }}
+            />
+
             <div className="clubs-list">
-                {clubs.map((club) => (
+                {filteredClubs.map((club) => (
                     <Card key={club.id} className="club-card" sx={{ marginBottom: 2, padding: 2 }}>
                         <div className="club-card-content">
                             <Typography variant="h6">{club.name}</Typography>
@@ -153,5 +153,3 @@ function Clubs() {
 }
 
 export default Clubs;
-
-
