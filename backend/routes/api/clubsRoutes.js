@@ -183,6 +183,29 @@ router.get('/meetings/:clubId', (req, res) => {
     });
 });
 
+router.post('/meetings', authenticateToken, (req, res) => {
+    const { clubIds } = req.body;
+
+    if (!clubIds || clubIds.length === 0) {
+        return res.json([]); // Return empty array if no clubs are provided
+    }
+
+    const placeholders = clubIds.map(() => '?').join(',');
+    const query = `
+        SELECT cm.id, cm.event_name, cm.meeting_time, c.name AS club_name
+        FROM club_meetings cm
+        JOIN clubs c ON cm.club_id = c.id
+        WHERE cm.club_id IN (${placeholders})
+    `;
+
+    db.query(query, clubIds, (err, results) => {
+        if (err) {
+            console.error('Error fetching meetings:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        res.json(results);
+    });
+});
 
 
 module.exports = router;

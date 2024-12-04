@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { TextField, Button, Typography, Box, Alert, Stack, Paper } from '@mui/material';
 
 const Profile = () => {
     const [user, setUser] = useState(null);
@@ -7,7 +8,7 @@ const Profile = () => {
     const [clubName, setClubName] = useState('');
     const [clubDescription, setClubDescription] = useState('');
     const [meetingTime, setMeetingTime] = useState('');
-    const [eventName, setEventName] = useState(''); // New state for event name
+    const [eventName, setEventName] = useState('');
     const [error, setError] = useState(null);
 
     useEffect(() => {
@@ -24,8 +25,6 @@ const Profile = () => {
 
                 const data = await response.json();
                 setUser(data.user);
-
-                // Fetch user's created clubs
                 fetchCreatedClubs(data.user.id);
             } catch (error) {
                 setError(error.message);
@@ -37,7 +36,6 @@ const Profile = () => {
 
     const fetchCreatedClubs = async (userId) => {
         const token = localStorage.getItem('token');
-
         try {
             const response = await axios.get(`/api/clubs/created/${userId}`, {
                 headers: { Authorization: `Bearer ${token}` },
@@ -48,39 +46,13 @@ const Profile = () => {
         }
     };
 
-    // const handleCreateClub = async (e) => {
-    //     e.preventDefault();
-    //     const token = localStorage.getItem('token');
-    //
-    //     try {
-    //         const response = await axios.post(
-    //             '/api/clubs/create',
-    //             {
-    //                 name: clubName,
-    //                 description: clubDescription,
-    //                 meetingTime,
-    //                 eventName // Include event name in the request
-    //             },
-    //             { headers: { Authorization: `Bearer ${token}` } }
-    //         );
-    //
-    //         alert('Club created successfully!');
-    //         setClubName('');
-    //         setClubDescription('');
-    //         setMeetingTime('');
-    //         setEventName(''); // Reset event name field
-    //         fetchCreatedClubs(user.id); // Refresh created clubs
-    //     } catch (error) {
-    //         alert('Error creating club: ' + error.message);
-    //     }
-    // };
     const handleCreateClub = async (e) => {
         e.preventDefault();
 
         // Validation: Check if all fields are filled
         if (!clubName || !clubDescription || !meetingTime || !eventName) {
-            alert('Please fill in all fields before creating the club.');
-            return; // Stop further execution if validation fails
+            setError('Please fill in all fields before creating the club.');
+            return;
         }
 
         const token = localStorage.getItem('token');
@@ -88,95 +60,102 @@ const Profile = () => {
         try {
             const response = await axios.post(
                 '/api/clubs/create',
-                {
-                    name: clubName,
-                    description: clubDescription,
-                    meetingTime,
-                    eventName // Include event name in the request
-                },
+                { name: clubName, description: clubDescription, meetingTime, eventName },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
+            setError(null); // Clear previous error if club creation is successful
             alert('Club created successfully!');
             setClubName('');
             setClubDescription('');
             setMeetingTime('');
-            setEventName(''); // Reset event name field
+            setEventName('');
             fetchCreatedClubs(user.id); // Refresh created clubs
         } catch (error) {
-            alert('Error creating club: ' + error.message);
+            setError('Error creating club: ' + error.message);
         }
     };
 
     if (error) {
-        return <p className="error-message">Error: {error}</p>;
+        return (
+            <Box sx={{ width: '100%' }}>
+                <Alert severity="error">{error}</Alert>
+            </Box>
+        );
     }
 
     if (!user) {
-        return <p>Loading...</p>;
+        return <Typography variant="h6">Loading...</Typography>;
     }
 
     return (
-        <div className="profile-container">
-            <h2>User Profile</h2>
-            <div className="profile-info">
-                <p><strong>Username:</strong> {user.username}</p>
-                <p><strong>Email:</strong> {user.email}</p>
+        <Paper sx={{ padding: 3 }}>
+            <Typography variant="h4" gutterBottom>User Profile</Typography>
+            <Typography variant="h6" gutterBottom><strong>Username:</strong> {user.username}</Typography>
+            <Typography variant="h6" gutterBottom><strong>Email:</strong> {user.email}</Typography>
 
-                <h3>Create a Club:</h3>
+            <Box sx={{ marginTop: 4 }}>
+                <Typography variant="h5">Create a Club</Typography>
                 <form onSubmit={handleCreateClub}>
-                    <div className="form-group">
-                        <label>Club Name:</label>
-                        <input
-                            type="text"
-                            className="form-control"
+                    <Stack spacing={2} sx={{ marginTop: 2 }}>
+                        <TextField
+                            label="Club Name"
+                            variant="outlined"
                             value={clubName}
                             onChange={(e) => setClubName(e.target.value)}
+                            fullWidth
                             required
                         />
-                    </div>
-                    <div className="form-group">
-                        <label>Club Description:</label>
-                        <textarea
-                            className="form-control"
+                        <TextField
+                            label="Club Description"
+                            variant="outlined"
                             value={clubDescription}
                             onChange={(e) => setClubDescription(e.target.value)}
+                            fullWidth
                             required
+                            multiline
+                            rows={4}
                         />
-                    </div>
-                    <div className="form-group">
-                        <label>Meeting Time:</label>
-                        <input
+                        <TextField
+                            label="Meeting Time"
+                            variant="outlined"
                             type="datetime-local"
-                            className="form-control"
                             value={meetingTime}
                             onChange={(e) => setMeetingTime(e.target.value)}
+                            fullWidth
                             required
+                            InputLabelProps={{
+                                shrink: true,
+                            }}
                         />
-                    </div>
-                    <div className="form-group">
-                        <label>Event Name:</label> {/* New input for event name */}
-                        <input
-                            type="text"
-                            className="form-control"
+                        <TextField
+                            label="Event Name"
+                            variant="outlined"
                             value={eventName}
                             onChange={(e) => setEventName(e.target.value)}
+                            fullWidth
                             required
                         />
-                    </div>
-                    <button type="submit" className="btn btn-primary">
-                        Create Club
-                    </button>
+                        <Button variant="contained" type="submit" fullWidth sx={{ marginTop: 2 }}>
+                            Create Club
+                        </Button>
+                    </Stack>
                 </form>
+            </Box>
 
-                <h3>Created Clubs:</h3>
+            <Box sx={{ marginTop: 4 }}>
+                <Typography variant="h5">Created Clubs</Typography>
                 <ul>
                     {createdClubs.map((club) => (
-                        <li key={club.id}>{club.name}: {club.description}</li>
+                        <li key={club.id}>
+                            <Typography variant="body1">
+                                {club.name}: {club.description}
+                            </Typography>
+                        </li>
                     ))}
                 </ul>
-            </div>
-        </div>
+            </Box>
+        </Paper>
     );
 };
 
