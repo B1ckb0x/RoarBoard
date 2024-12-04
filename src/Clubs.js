@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import Calendar from './Calendar.js';
+import { Card, FormControlLabel, Switch } from '@mui/material';
+import './Clubs.css'; // Optional for custom styles
 
 function Clubs() {
     const [clubs, setClubs] = useState([]);
     const [subscriptions, setSubscriptions] = useState([]);
-    const [selectedClubId, setSelectedClubId] = useState(null); // State to track the club for which to show the calendar
     const token = localStorage.getItem('authToken');
 
     useEffect(() => {
@@ -18,7 +18,7 @@ function Clubs() {
         axios.get('/api/clubs/subscriptions', { headers: { Authorization: `Bearer ${token}` } })
             .then(response => setSubscriptions(response.data))
             .catch(error => console.error('Error fetching subscriptions:', error));
-    }, []);
+    }, [token]);
 
     const handleToggle = (clubId) => {
         const isSubscribed = subscriptions.includes(clubId);
@@ -29,7 +29,6 @@ function Clubs() {
             isSubscribed: !isSubscribed
         }, { headers: { Authorization: `Bearer ${token}` } })
             .then(() => {
-                // Update subscriptions state based on toggle
                 setSubscriptions(prev =>
                     isSubscribed ? prev.filter(id => id !== clubId) : [...prev, clubId]
                 );
@@ -38,29 +37,33 @@ function Clubs() {
     };
 
     return (
-        <div>
-            <h3>Toggle which clubs you would like to subscribe to:</h3>
-            {clubs.map((club) => (
-                <div key={club.id} className="form-check form-switch">
-                    <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id={`club-${club.id}`}
-                        checked={subscriptions.includes(club.id)}
-                        onChange={() => handleToggle(club.id)}
-                    />
-                    <label className="form-check-label" htmlFor={`club-${club.id}`}>{club.name}</label>
-                    <button
-                        className="btn btn-link"
-                        onClick={() => setSelectedClubId(selectedClubId === club.id ? null : club.id)}
-                    >
-                        {selectedClubId === club.id ? 'Hide Calendar' : 'Show Calendar'}
-                    </button>
-                    {selectedClubId === club.id && <Calendar clubId={club.id} />}
-                </div>
-            ))}
+        <div className="clubs-container">
+            <h3>Your Clubs</h3>
+            <p>Toggle the clubs you'd like to subscribe to:</p>
+            <div className="clubs-list">
+                {clubs.map((club) => (
+                    <Card key={club.id} className="club-card">
+                        <div className="club-card-content">
+                            <h4>{club.name}</h4>
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={subscriptions.includes(club.id)}
+                                        onChange={() => handleToggle(club.id)}
+                                        color="primary"
+                                    />
+                                }
+                                label={subscriptions.includes(club.id) ? 'Subscribed' : 'Not Subscribed'}
+                                labelPlacement="end"
+                            />
+                        </div>
+                    </Card>
+                ))}
+            </div>
         </div>
     );
 }
 
 export default Clubs;
+
+
