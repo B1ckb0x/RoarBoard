@@ -33,9 +33,9 @@ function App() {
               <Link className="nav-item nav-link" to="/Calendar">Calendar</Link>
               <Link className="nav-item nav-link" to="/DocAI">Doc the AI</Link>
             </div>
-            <div className="ml-auto">
-              <Link className="btn btn-outline-light" to="/login">Login</Link>
-              <Link className="btn btn-outline-light" to="/logout">Logout</Link>
+            <div className="ms-auto d-flex">
+              <Link className="btn btn-primary me-2" to="/login">Login</Link>
+              <Link className="btn btn-danger" to="/logout">Logout</Link>
             </div>
           </div>
         </nav>

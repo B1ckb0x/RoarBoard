@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom"; // Import the Link component
 
 function Home() {
   return (
@@ -53,9 +54,7 @@ function Home() {
           boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
         }}
       >
-        <h2 style={{ fontSize: "2rem", marginBottom: "10px" }}>
-          About RoarBoard
-        </h2>
+        <h2 style={{ fontSize: "2rem", marginBottom: "10px" }}>About RoarBoard</h2>
         <p style={{ fontSize: "1.2rem", lineHeight: "1.6" }}>
           RoarBoard is your central hub for all things happening in our
           community. Whether you're interested in joining a club, keeping track
@@ -63,8 +62,22 @@ function Home() {
           something for everyone. Stay tuned for more updates and features!
         </p>
         <p style={{ fontSize: "1.2rem", lineHeight: "1.6" }}>
-          If you're new here, feel free to explore and make the most of our
-          resources. We're excited to have you on board!
+          If you're new here, feel free to{" "}
+          <Link
+            to="/register"
+            style={{
+              color: "white",
+              textDecoration: "none",
+              backgroundColor: "#007bff",
+              padding: "5px 10px",
+              borderRadius: "5px",
+              boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            register
+          </Link>{" "}
+          your account to make the most of our resources. We're excited to have
+          you on board!
         </p>
       </div>
     </div>
