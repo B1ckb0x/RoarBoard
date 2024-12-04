@@ -1,62 +1,111 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import './DocAI.css'; // Add this line for custom styles
+import { TextField, Typography, CircularProgress, Card, CardContent, Box, IconButton } from '@mui/material';
+import { Search as SearchIcon, ErrorOutline as ErrorIcon } from '@mui/icons-material';
+import './DocAI.css'; // Import the CSS file
 
 function DocAI() {
-  const [userMessage, setUserMessage] = useState('');
-  const [responses, setResponses] = useState([]);
+  const [userInput, setUserInput] = useState('');
+  const [recommendation, setRecommendation] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleSendMessage = async () => {
-    if (!userMessage) return;
-
-    setResponses((prev) => [...prev, { text: userMessage, sender: 'user' }]);
-
-    try {
-      const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-        model: 'gpt-3.5-turbo',
-        messages: [{ role: 'user', content: userMessage }],
-      }, {
-        headers: {
-          'Authorization': `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response && response.data?.choices?.length > 0) {
-        const aiResponse = response.data.choices[0].message.content;
-        setResponses((prev) => [...prev, { text: aiResponse, sender: 'ai' }]);
-      } else {
-        setResponses((prev) => [...prev, { text: 'Error: No response from DocAI', sender: 'ai' }]);
-      }
-    } catch (error) {
-      console.error('Error fetching AI response:', error);
-      setResponses((prev) => [...prev, { text: 'Error contacting DocAI. Please try again later.', sender: 'ai' }]);
+  const handleRecommend = async () => {
+    if (!userInput.trim()) {
+      setRecommendation(null);
+      return;
     }
 
-    setUserMessage('');
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Call OpenAI API
+      const response = await axios.post('/api/openai/recommend', {
+        prompt: `Suggest a club, event, and meeting time for someone interested in "${userInput}".`,
+      });
+
+      const data = response.data;
+
+      if (data && data.recommendation) {
+        setRecommendation(data.recommendation);
+      } else {
+        setRecommendation(null);
+      }
+    } catch (err) {
+      console.error('Error fetching recommendations from ChatGPT:', err);
+      setError('Error fetching recommendations. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="docai-container">
-      <h3>Chat with DocAI</h3>
-      <div className="chat-box">
-        {responses.map((resp, index) => (
-          <div key={index} className={`message ${resp.sender}`}>
-            <strong>{resp.sender === 'user' ? 'You' : 'DocAI'}:</strong> {resp.text}
-          </div>
-        ))}
-      </div>
-      <div className="input-container">
-        <input
-          type="text"
+    <Box className="docai-container">
+      <Typography variant="h4" align="center" gutterBottom>
+        Document AI Club Recommender
+      </Typography>
+
+      <Box display="flex" justifyContent="center" mb={3}>
+        <TextField
+          label="Enter your interests or topic"
+          variant="outlined"
+          fullWidth
+          value={userInput}
+          onChange={(e) => setUserInput(e.target.value)}
           className="input-box"
-          value={userMessage}
-          onChange={(e) => setUserMessage(e.target.value)}
-          placeholder="Type your message here..."
+          size="small"
         />
-        <button className="send-button" onClick={handleSendMessage}>Send</button>
-      </div>
-    </div>
+        <IconButton
+          color="primary"
+          onClick={handleRecommend}
+          className="search-icon"
+          aria-label="search"
+        >
+          <SearchIcon />
+        </IconButton>
+      </Box>
+
+      {loading && (
+        <Box display="flex" justifyContent="center" my={2}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      {error && (
+        <Box display="flex" justifyContent="center" alignItems="center" className="error-text">
+          <ErrorIcon color="error" />
+          <Typography color="error" ml={1}>
+            {error}
+          </Typography>
+        </Box>
+      )}
+
+      {recommendation ? (
+        <Card variant="outlined" className="recommendation-card">
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              We Recommend:
+            </Typography>
+            <Typography variant="body1">
+              <strong>Club:</strong> {recommendation.club}
+            </Typography>
+            <Typography variant="body1">
+              <strong>Event:</strong> {recommendation.event}
+            </Typography>
+            <Typography variant="body1">
+              <strong>Meeting Time:</strong> {recommendation.meetingTime}
+            </Typography>
+          </CardContent>
+        </Card>
+      ) : (
+        !loading && (
+          <Typography align="center" className="no-recommendation-text">
+            No suitable recommendation found. Try a different topic!
+          </Typography>
+        )
+      )}
+    </Box>
   );
 }
 
