@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Card, FormControlLabel, Switch, Typography, TextField } from '@mui/material'; // Added TextField for search input
-import './Clubs.css'; // Optional for custom styles
+import { Card, FormControlLabel, Switch, Typography, TextField, Box, Alert } from '@mui/material';
+import './Clubs.css';
 
 function Clubs() {
     const [clubs, setClubs] = useState([]);
     const [subscriptions, setSubscriptions] = useState([]);
-    const [searchQuery, setSearchQuery] = useState(""); // State for search input
+    const [notifications, setNotifications] = useState([]); // Store all notifications
+    const [searchQuery, setSearchQuery] = useState("");
     const token = localStorage.getItem('authToken');
 
     useEffect(() => {
@@ -19,7 +20,22 @@ function Clubs() {
         axios.get('/api/clubs/subscriptions', { headers: { Authorization: `Bearer ${token}` } })
             .then(response => setSubscriptions(response.data))
             .catch(error => console.error('Error fetching subscriptions:', error));
+
+        // Fetch all notifications
+        axios.get('/api/clubs/notifications', { headers: { Authorization: `Bearer ${token}` } })
+            .then(response => setNotifications(response.data))
+            .catch(error => console.error('Error fetching notifications:', error));
     }, [token]);
+
+    useEffect(() => {
+        // Remove notifications after 5 seconds
+        if (notifications.length > 0) {
+            const timer = setTimeout(() => {
+                setNotifications([]);
+            }, 5000);
+            return () => clearTimeout(timer); // Cleanup timer
+        }
+    }, [notifications]);
 
     const handleToggle = (clubId) => {
         const isSubscribed = subscriptions.includes(clubId);
@@ -39,7 +55,7 @@ function Clubs() {
 
     // Filter clubs based on search query
     const filteredClubs = clubs.filter(club =>
-        club.name.toLowerCase().includes(searchQuery.toLowerCase()) // Case-insensitive search
+        club.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return (
@@ -52,11 +68,24 @@ function Clubs() {
                 label="Search Clubs"
                 variant="outlined"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)} // Update search query
+                onChange={(e) => setSearchQuery(e.target.value)}
                 fullWidth
                 sx={{ marginBottom: 3 }}
             />
 
+            {/* Notifications Section */}
+            {notifications.length > 0 && (
+                <Box sx={{ marginBottom: 4, padding: 2, backgroundColor: '#f9f9f9', borderRadius: 1 }}>
+                    <Typography variant="h6" sx={{ marginBottom: 2 }}>Notifications:</Typography>
+                    {notifications.map((notification) => (
+                        <Alert key={notification.id} severity="info" sx={{ marginBottom: 1 }}>
+                            <strong>{notification.club_name}:</strong> {notification.message}
+                        </Alert>
+                    ))}
+                </Box>
+            )}
+
+            {/* Clubs List */}
             <div className="clubs-list">
                 {filteredClubs.map((club) => (
                     <Card key={club.id} className="club-card" sx={{ marginBottom: 2, padding: 2 }}>

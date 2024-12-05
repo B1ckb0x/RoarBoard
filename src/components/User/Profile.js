@@ -5,6 +5,7 @@ import { TextField, Button, Typography, Box, Alert, Stack, Paper } from '@mui/ma
 const Profile = () => {
     const [user, setUser] = useState(null);
     const [createdClubs, setCreatedClubs] = useState([]);
+    const [subscriptionCounts, setSubscriptionCounts] = useState([]);
     const [clubName, setClubName] = useState('');
     const [clubDescription, setClubDescription] = useState('');
     const [meetingTime, setMeetingTime] = useState('');
@@ -41,15 +42,32 @@ const Profile = () => {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setCreatedClubs(response.data);
+            fetchSubscriptionCounts(response.data);
         } catch (error) {
             setError('Error fetching created clubs: ' + error.message);
+        }
+    };
+
+    const fetchSubscriptionCounts = async (clubs) => {
+        const token = localStorage.getItem('token');
+        try {
+            const response = await axios.get('/api/clubs/subscription-count', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            const counts = response.data;
+            const clubCounts = clubs.map(club => {
+                const count = counts.find(c => c.club_id === club.id);
+                return { clubId: club.id, subscriptionCount: count ? count.subscriptionCount : 0 };
+            });
+            setSubscriptionCounts(clubCounts);
+        } catch (error) {
+            setError('Error fetching subscription counts: ' + error.message);
         }
     };
 
     const handleCreateClub = async (e) => {
         e.preventDefault();
 
-        // Validation: Check if all fields are filled
         if (!clubName || !clubDescription || !meetingTime || !eventName) {
             setError('Please fill in all fields before creating the club.');
             return;
@@ -64,13 +82,13 @@ const Profile = () => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            setError(null); // Clear previous error if club creation is successful
+            setError(null);
             alert('Club created successfully!');
             setClubName('');
             setClubDescription('');
             setMeetingTime('');
             setEventName('');
-            fetchCreatedClubs(user.id); // Refresh created clubs
+            fetchCreatedClubs(user.id);
         } catch (error) {
             setError('Error creating club: ' + error.message);
         }
@@ -78,84 +96,110 @@ const Profile = () => {
 
     if (error) {
         return (
-            <Box sx={{ width: '100%' }}>
-                <Alert severity="error">{error}</Alert>
+            <Box sx={{ width: '100%', marginBottom: 2 }}>
+                <Alert severity="error" sx={{ borderRadius: 1, backgroundColor: '#FFEBEE' }}>{error}</Alert>
             </Box>
         );
     }
 
     if (!user) {
-        return <Typography variant="h6">Loading...</Typography>;
+        return <Typography variant="h6" sx={{ color: 'gray' }}>Loading...</Typography>;
     }
 
     return (
-        <Paper sx={{ padding: 3 }}>
-            <Typography variant="h4" gutterBottom>User Profile</Typography>
-            <Typography variant="h6" gutterBottom><strong>Username:</strong> {user.username}</Typography>
-            <Typography variant="h6" gutterBottom><strong>Email:</strong> {user.email}</Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'center', padding: 4 }}>
+            <Paper sx={{ width: '100%', maxWidth: 900, padding: 4, borderRadius: 2, boxShadow: 4 }}>
+                <Typography variant="h4" sx={{ fontWeight: 600, color: '#333', marginBottom: 3 }}>User Profile</Typography>
+                <Typography variant="h6" sx={{ marginBottom: 1 }}>
+                    <strong>Username:</strong> {user.username}
+                </Typography>
+                <Typography variant="h6" sx={{ marginBottom: 3 }}>
+                    <strong>Email:</strong> {user.email}
+                </Typography>
 
-            <Box sx={{ marginTop: 4 }}>
-                <Typography variant="h5">Create a Club</Typography>
-                <form onSubmit={handleCreateClub}>
-                    <Stack spacing={2} sx={{ marginTop: 2 }}>
-                        <TextField
-                            label="Club Name"
-                            variant="outlined"
-                            value={clubName}
-                            onChange={(e) => setClubName(e.target.value)}
-                            fullWidth
-                            required
-                        />
-                        <TextField
-                            label="Club Description"
-                            variant="outlined"
-                            value={clubDescription}
-                            onChange={(e) => setClubDescription(e.target.value)}
-                            fullWidth
-                            required
-                            multiline
-                            rows={4}
-                        />
-                        <TextField
-                            label="Meeting Time"
-                            variant="outlined"
-                            type="datetime-local"
-                            value={meetingTime}
-                            onChange={(e) => setMeetingTime(e.target.value)}
-                            fullWidth
-                            required
-                            InputLabelProps={{
-                                shrink: true,
-                            }}
-                        />
-                        <TextField
-                            label="Event Name"
-                            variant="outlined"
-                            value={eventName}
-                            onChange={(e) => setEventName(e.target.value)}
-                            fullWidth
-                            required
-                        />
-                        <Button variant="contained" type="submit" fullWidth sx={{ marginTop: 2 }}>
-                            Create Club
-                        </Button>
-                    </Stack>
-                </form>
-            </Box>
+                <Box sx={{ marginTop: 4 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 600, color: '#1976d2', marginBottom: 2 }}>Create a Club</Typography>
+                    <form onSubmit={handleCreateClub}>
+                        <Stack spacing={3}>
+                            <TextField
+                                label="Club Name"
+                                variant="outlined"
+                                value={clubName}
+                                onChange={(e) => setClubName(e.target.value)}
+                                fullWidth
+                                required
+                                sx={{ borderRadius: 2 }}
+                            />
+                            <TextField
+                                label="Club Description"
+                                variant="outlined"
+                                value={clubDescription}
+                                onChange={(e) => setClubDescription(e.target.value)}
+                                fullWidth
+                                required
+                                multiline
+                                rows={4}
+                                sx={{ borderRadius: 2 }}
+                            />
+                            <TextField
+                                label="Meeting Time"
+                                variant="outlined"
+                                type="datetime-local"
+                                value={meetingTime}
+                                onChange={(e) => setMeetingTime(e.target.value)}
+                                fullWidth
+                                required
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                                sx={{ borderRadius: 2 }}
+                            />
+                            <TextField
+                                label="Event Name"
+                                variant="outlined"
+                                value={eventName}
+                                onChange={(e) => setEventName(e.target.value)}
+                                fullWidth
+                                required
+                                sx={{ borderRadius: 2 }}
+                            />
+                            <Button
+                                variant="contained"
+                                type="submit"
+                                fullWidth
+                                sx={{ backgroundColor: '#1976d2', borderRadius: 2, fontWeight: 600, padding: 1.5 }}
+                            >
+                                Create Club
+                            </Button>
+                        </Stack>
+                    </form>
+                </Box>
 
-            <Box sx={{ marginTop: 4 }}>
-                <Typography variant="h5">Created Clubs</Typography>
-                <ul>
-                    {createdClubs.map((club) => (
-                        <li key={club.id}>
-                            <Typography variant="body1">
-                                {club.name}: {club.description}
-                            </Typography>
-                        </li>
-                    ))}
-                </ul>
-            </Box>
-        </Paper>
+                <Box sx={{ marginTop: 4 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 600, color: '#333', marginBottom: 2 }}>Created Clubs</Typography>
+                    <ul style={{ paddingLeft: 0 }}>
+                        {createdClubs.map((club) => {
+                            const clubCount = subscriptionCounts.find(
+                                (count) => count.clubId === club.id
+                            )?.subscriptionCount || 0;
+
+                            return (
+                                <li key={club.id} style={{ marginBottom: 16 }}>
+                                    <Box sx={{ backgroundColor: '#f5f5f5', padding: 2, borderRadius: 2 }}>
+                                        <Typography variant="body1" sx={{ color: '#333' }}>
+                                            <strong>{club.name}</strong>: {club.description}
+                                        </Typography>
+                                        <Typography variant="body2" sx={{ color: '#555', marginTop: 1 }}>
+                                            <strong>Subscribers:</strong> {clubCount}
+                                        </Typography>
+                                    </Box>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </Box>
+            </Paper>
+        </Box>
     );
 };
 

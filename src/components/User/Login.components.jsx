@@ -8,36 +8,38 @@ const Login = () => {
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
     try {
-        const response = await fetch('http://localhost:3001/users/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-                email,
-                password,
-            }),
-        });
+      const response = await fetch('http://localhost:3001/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (response.ok) {
-            // Store the token in localStorage
-            //localStorage.setItem('token', data.token);
-            setMessage(data.message);
-            navigate('/clubs'); // Redirect to /clubs after successful login
-        } else {
-            setMessage('Login failed: ' + data.error);
-        }
+      if (response.ok) {
+        // Save userId in localStorage
+        localStorage.setItem('userId', data.userId); // Storing userId
+        setMessage(data.message);
+        navigate('/clubs'); // Redirect to /clubs after successful login
+      } else {
+        setMessage('Login failed: ' + data.error);
+      }
     } catch (error) {
-        setMessage('Login failed: ' + error.message);
+      setMessage('Login failed: ' + error.message);
     }
-};
+  };
+
 
 
   return (
