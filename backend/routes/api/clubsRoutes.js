@@ -207,5 +207,121 @@ router.post('/meetings', authenticateToken, (req, res) => {
     });
 });
 
+router.get('/subscription-count', (req, res) => {
+    // Query to get the subscription count for each club
+    const query = `
+        SELECT club_id, COUNT(*) AS subscriptionCount
+        FROM club_subscriptions
+        GROUP BY club_id
+    `;
+
+    db.execute(query, (error, results) => {
+        if (error) {
+            console.error('Error fetching subscription counts:', error);
+            return res.status(500).json({ error: 'Failed to fetch subscription counts' });
+        }
+
+        // Send the subscription counts as a response
+        res.json(results);
+    });
+});
+
+// Send notification to club subscribers
+router.post('/send-notification', authenticateToken, (req, res) => {
+  const { clubId, message } = req.body;
+  const userId = req.userId;
+
+  // Check if the user owns the club
+  const verifyClubQuery = 'SELECT * FROM clubs WHERE id = ? AND created_by = ?';
+  db.query(verifyClubQuery, [clubId, userId], (err, result) => {
+    if (err || result.length === 0) {
+      return res.status(403).json({ error: 'Unauthorized to send notifications for this club' });
+    }
+
+    // Insert notification into the database
+    const notificationQuery = `
+      INSERT INTO club_notifications (club_id, message, created_at)
+      VALUES (?, ?, NOW())
+    `;
+    db.query(notificationQuery, [clubId, message], (err) => {
+      if (err) return res.status(500).json({ error: 'Failed to send notification' });
+      res.json({ message: 'Notification sent successfully' });
+    });
+  });
+});
+
+// Get subscribers for a club
+router.get('/subscribers/:clubId', authenticateToken, (req, res) => {
+  const clubId = req.params.clubId;
+
+  const query = `
+    SELECT u.id, u.username
+    FROM club_subscriptions cs
+    JOIN users u ON cs.user_id = u.id
+    WHERE cs.club_id = ?
+  `;
+  db.query(query, [clubId], (err, results) => {
+    if (err) return res.status(500).json({ error: 'Failed to fetch subscribers' });
+    res.json(results);
+  });
+});
+
+// Update club meeting time
+router.post('/update-meeting', authenticateToken, (req, res) => {
+  const { clubId, meetingTime } = req.body;
+  const userId = req.userId;
+
+  // Verify club ownership
+  const verifyClubQuery = 'SELECT * FROM clubs WHERE id = ? AND created_by = ?';
+  db.query(verifyClubQuery, [clubId, userId], (err, result) => {
+    if (err || result.length === 0) {
+      return res.status(403).json({ error: 'Unauthorized to update this club' });
+    }
+
+    // Update meeting time
+    const updateMeetingQuery = `
+      UPDATE club_meetings
+      SET meeting_time = ?
+      WHERE club_id = ? ORDER BY meeting_time ASC LIMIT 1
+    `;
+    db.query(updateMeetingQuery, [meetingTime, clubId], (err) => {
+      if (err) return res.status(500).json({ error: 'Failed to update meeting time' });
+      res.json({ message: 'Meeting time updated successfully' });
+    });
+  });
+});
+
+router.get('/created/owner/:userId', (req, res) => {
+  const userId = req.params.userId; // Extract userId from the URL
+  console.log('User ID from URL:', userId); // Debugging
+
+  const query = 'SELECT id, name FROM clubs WHERE created_by = ?';
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error('Error fetching user-created clubs:', err);
+      return res.status(500).json({ error: 'Database query error' });
+    }
+    console.log('Clubs fetched for user:', results); // Debugging
+    res.json(results);
+  });
+});
+
+// Fetch notifications for all clubs with club names
+router.get('/notifications', (req, res) => {
+    const query = `
+        SELECT cn.id, cn.message, cn.created_at, c.name AS club_name
+        FROM club_notifications cn
+        JOIN clubs c ON cn.club_id = c.id
+        ORDER BY cn.created_at DESC
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: 'Database query error' });
+        }
+        res.json(results); // Return all notifications with club names
+    });
+});
+
+
 
 module.exports = router;

@@ -13,8 +13,9 @@ import Login from './components/User/Login.components.jsx';
 import Register from './components/User/Register.components.jsx';
 import Logout from './components/User/Logout.components.jsx';
 import Calendar from './Calendar.js'; 
-import DocAI from './DocAI.js'; 
-import ClubCreationForm from './components/ClubCreationForm.js'; 
+import DocAI from './DocAI.js';
+import ClubManagement from "./ClubManagement.js";
+
 
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
               <Link className="nav-item nav-link" to="/Clubs">Clubs</Link>
               <Link className="nav-item nav-link" to="/Calendar">Calendar</Link>
               <Link className="nav-item nav-link" to="/DocAI">Doc the AI</Link>
+              <Link className="nav-item nav-link" to="/club-manage">ClubManagement</Link>
             </div>
             <div className="ms-auto d-flex">
               <Link className="btn btn-primary me-2" to="/login">Login</Link>
@@ -50,6 +52,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/logout" element={<Logout />} />
+            <Route path="/club-manage" element={<ClubManagement />} />
             <Route path="/protected" element={<div>Protected content will be here after development.</div>} />
           </Routes>
         </div>
